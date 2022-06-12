@@ -107,24 +107,26 @@ library(tibble) #To display data along with data type while displaying
 library(grid) #To provide a set of functions and classes that represent graphical objects or grobs, that can be manipulated like any other R object
 library(ggplot2) #To data visualization
 library(knitr) #To enable integration of R code into LaTeX, LyX, HTML, Markdown, AsciiDoc, and reStructuredText documents
-library(kableExtra) #to help building common complex tables and manipulate table styles
-library(workflows) #a container object that aggregates information required to fit and predict from a model
-library(pacman) #management tool that combines the functionality of base library related functions into intuitively named functions
-library(GGally) #a plotting system based on the grammar of graphics
-library(tidymodels) #collection of packages for modeling and machine learning using tidyverse principles
-library(tune) #to facilitate hyperparameter tuning for the tidymodels packages
-library(kableExtra) #to help you build common complex tables and manipulate table styles
+library(kableExtra) #To help building common complex tables and manipulate table styles
+library(workflows) #A container object that aggregates information required to fit and predict from a model
+library(pacman) #Management tool that combines the functionality of base library related functions into intuitively named functions
+library(GGally) #A plotting system based on the grammar of graphics
+library(tidymodels) #A collection of packages for modeling and machine learning using tidyverse principles
+library(tune) #To facilitate hyperparameter tuning for the tidymodels packages
+library(kableExtra) #To help you build common complex tables and manipulate table styles
 options(knitr.table.format = "html")
-library(data.table) #an extension of data. frame package in R
+library(data.table) #An extension of data. frame package in R
 library(DT) #To provide an R interface to the JavaScript library DataTables
-library(metan) #a collection of functions that implement a workflow-based approach
-library(ranger) #a fast implementation of random forests
+library(metan) #A collection of functions that implement a workflow-based approach
+library(ranger) #A fast implementation of random forests
 library(xgboost) #Extreme Gradient Boosting
 library(visdat) #To provide visualisations of an entire dataframe at once
 library(magrittr)#To provide a mechanism for chaining commands with a new forward-pipe operator, %>%.
-library(hexbin) #hexbin chart
-library(cowplot) #a simple add-on to ggplot
+library(hexbin) #A hexbin chart
+library(cowplot) #A simple add-on to ggplot
 library(reshape2) #to transform data between wide and long formats
+library(mgcv) #To create generalized addictive model (GAM)
+library(visreg) #For regression visualization
 ```
 
 ### **DESCRIPTION OF DATA**
@@ -739,7 +741,7 @@ ols_plot_resid_hist(full_linregmodel)
 `r text_spec("**1. Check for Normality of the dependent variable: Popularity**", background = "#D05A6E", color = "white", bold = T)`
 ```{r results='hide'}
 hist(df3$popularity)
-##dependent variable not normal, failed and cannot proceed with linear regression analysis. We will consider non-linear regressions
+##dependent variable not normal, failed and cannot proceed with parametric linear regression analysis. We will consider non-linear regressions and non-parametric tests
 ```
 
 `r text_spec("**2. Check the correlation with dependent variable: Popularity**", background = "#D05A6E", color = "white", bold = T)`
@@ -757,14 +759,38 @@ datatable(df5, extensions = 'Buttons', rownames=FALSE, filter = 'top', options =
                          buttons =c('copy', 'csv','excel','pdf', 'print'), class = 'hover cell - border stripe'))
 ```
 
-`r text_spec("**4. Fit a model with multiple regression**", background = "#D05A6E", color = "white", bold = T)`
+`r text_spec("**4.0. Using Generalized Addictive Model**", background = "#D05A6E", color = "white", bold = T)`
 ```{r}
-multiple.regression <- gam(popularity ~ s(danceability) + s(liveliness) + s(valence), data=df5)
+```
+
+`r text_spec("**4.1. Fit a model with multiple regression with Linear Fit**", background = "#D05A6E", color = "white", bold = T)`
+```{r}
+multiple.regression_lm<- gam(popularity ~ danceability + liveliness + valence, data=df5)
+coef(multiple.regression_lm); AIC(multiple.regression_lm) 
+visreg(multiple.regression_lm,"danceability")
+visreg(multiple.regression_lm,"liveliness")
+visreg(multiple.regression_lm,"valence")
+multiple.regression_lm$model #The linear regression model data
+
+```
+
+`r text_spec("**4.2. Fit a model with multiple regression with Non-Linear Fit**", background = "#D05A6E", color = "white", bold = T)`
+```{r}
+multiple.regression_gam <- gam(popularity ~ s(danceability) + s(liveliness) + s(valence), data=df5)
+coef(multiple.regression_gam); AIC(multiple.regression_lm) 
+visreg(multiple.regression_gam,"danceability")
+visreg(multiple.regression_gam,"liveliness")
+visreg(multiple.regression_gam,"valence")
+multiple.regression_gam$model #The non-linear regression model data
 ```
 
 `r text_spec("**5. Summary of the model**", background = "#D05A6E", color = "white", bold = T)`
 ```{r}
-summary(multiple.regression)
+summary(multiple.regression_lm)
+summary(multiple.regression_gam)
+anova(multiple.regression_1, multiple.regression_2, test="Chisq")
+
+##This shows additional statistical evidence to suggest that incorporating nonlinear relationships of the covariates improves the model.
 ```
 
 
